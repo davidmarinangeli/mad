@@ -1,0 +1,191 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #000;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Canvas fills the screen, Phaser FIT mode handles scaling */
+#game-container canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ── Dialog Overlay ── */
+#ui-layer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 48px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#level-title {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 32px;
+  color: #f8fafc;
+  z-index: 20;
+  pointer-events: none;
+  text-shadow: 4px 4px 0 #000;
+}
+
+#dialog-box {
+  font-family: 'Press Start 2P', monospace;
+  background: #1a1a2e;
+  border: 3px solid #e2e2e2;
+  outline: 3px solid #1a1a2e; /* double border for pixel effect */
+  padding: 20px 24px 16px;
+  width: 90%;
+  max-width: 520px;
+  color: #f0f0f0;
+  pointer-events: auto;
+  image-rendering: pixelated;
+
+  /* Slide up animation */
+  transition: opacity 0.15s, transform 0.2s;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#dialog-box.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+#dialog-text {
+  font-size: 11px;
+  line-height: 2;
+  color: #f0f0f0;
+  margin-bottom: 16px;
+}
+
+/* Multiple choice buttons */
+#dialog-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#dialog-options:empty { display: none; }
+
+.dialog-option {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: #0f0f1a;
+  border: 2px solid #555;
+  color: #ccc;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.8;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+
+.dialog-option::before { content: '▶ '; color: #555; }
+
+.dialog-option:hover {
+  background: #2a2a4a;
+  border-color: #f0f0f0;
+  color: #fff;
+}
+.dialog-option:hover::before { color: #fff; }
+
+/* Correct / wrong flash states */
+.dialog-option.correct { background: #124a1d; border-color: #22c55e; color: #86efac; }
+.dialog-option.correct::before { color: #22c55e; }
+.dialog-option.wrong   { background: #4a1212; border-color: #ef4444; color: #fca5a5; }
+.dialog-option.wrong::before   { color: #ef4444; }
+
+/* Text input mode */
+#dialog-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+#dialog-input {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: #0f0f1a;
+  border: 2px solid #555;
+  color: #ccc;
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+#dialog-input:focus {
+  border-color: #f0f0f0;
+  background: #1a1a2e;
+}
+
+#dialog-input::placeholder {
+  color: #555;
+}
+
+#dialog-input.correct {
+  background: #124a1d;
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+#dialog-input.wrong {
+  background: #4a1212;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+#dialog-submit-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background: #0f0f1a;
+  border: 2px solid #555;
+  color: #ccc;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+
+#dialog-submit-btn:hover {
+  background: #2a2a4a;
+  border-color: #f0f0f0;
+  color: #fff;
+}
+
+#dialog-submit-btn.correct {
+  background: #124a1d;
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+#dialog-submit-btn.wrong {
+  background: #4a1212;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+/* "▼ PRESS E" blinking hint */
+.prompt {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #888;
+  text-align: right;
+  margin-top: 14px;
+  animation: blink 1.2s step-start infinite;
+}
+
+@keyframes blink { 50% { opacity: 0; } }

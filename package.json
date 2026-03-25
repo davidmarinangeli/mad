@@ -1,0 +1,19 @@
+{
+  "name": "core-memories",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.80.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.4"
+  }
+}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Core Memories</title>
+    <!-- "Press Start 2P" = the gold standard pixel art font, crisply readable -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+  </head>
+  <body>
+    <div id="game-container"></div>
+    <div id="ui-layer">
+      <div id="level-title"></div>
+      <div id="dialog-box" class="hidden">
+        <p id="dialog-text"></p>
+        <div id="dialog-options"></div>
+        <div id="dialog-input-container" style="display: none;">
+          <input 
+            type="text" 
+            id="dialog-input" 
+            placeholder="Type your answer..." 
+            onkeydown="event.stopPropagation(); if(event.key==='Enter'){event.preventDefault();document.getElementById('dialog-submit-btn').click();}"
+            onkeyup="event.stopPropagation();"
+            onkeypress="event.stopPropagation();"
+          />
+          <button id="dialog-submit-btn" onclick="window.handleTextInput(document.getElementById('dialog-input').value)">Submit</button>
+        </div>
+        <div id="dialog-prompt" class="prompt">▼ PRESS E</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
