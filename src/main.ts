@@ -42,63 +42,60 @@ const LEVELS = [
     {
         mapKey: 'map_3',
         title: "Sicily",
-        startX: 40, startY: 200,    // horizontal flow - spawn far left
+        startX: 10, startY: 180,    // horizontal flow - spawn far left, clear of stalls
         signX: 0, signY: 0,
         isCustomMap: true,
     },
     {
-        mapKey: 'map_4',
+        mapKey: 'map_4_1',
         title: "Lanzarote",
-        startX: 32, startY: 752,    // 50x50 map = 800x800px
-        signX: 752, signY: 48,      // top right corner
-        question: "What was the van called that we rented?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        startX: 32, startY: 150,    // Left side of asphalt
+        signX: 0, signY: 0,
+        isCustomMap: true
     },
+
     {
         mapKey: 'map_5',
         title: "Lanzarote: Van in the Sand",
-        startX: 32, startY: 752,    // 30x50 map = 480x800px
-        signX: 432, signY: 48,      // top right after tight S
-        question: "Who came to help us when the van was stuck?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        startX: 32, startY: 150,
+        signX: 0, signY: 0,
+        isCustomMap: true
     },
     {
         mapKey: 'map_7',
         title: "Tortellini with Nonna",
-        startX: 32, startY: 272,    // 20x20 map = 320x320px
-        signX: 256, signY: 160,     // across the kitchen table from start
+        startX: 32, startY: 272,
+        signX: 256, signY: 160,
         question: "What's the secret Nonna adds to tortellini filling?",
         options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        correctIndex: 0
     },
     {
         mapKey: 'map_8',
         title: "Snow Trekking",
-        startX: 160, startY: 1072,  // 20x70 map = 320x1120px
-        signX: 160, signY: 48,      // top of mountain
+        startX: 160, startY: 1072,
+        signX: 160, signY: 48,
         question: "How did I attempt to dry my soaking socks by the fire?",
         options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        correctIndex: 0
     },
     {
         mapKey: 'map_9',
         title: "Parmesan Factory",
-        startX: 32, startY: 288,    // 40x25 map = 640x400px
-        signX: 592, signY: 176,     // far right across factory floor
+        startX: 32, startY: 288,
+        signX: 592, signY: 176,
         question: "How many months does the parmesan we tasted age for?",
         options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        correctIndex: 0
     },
     {
         mapKey: 'map_10',
         title: "At Your Apartment",
-        startX: 32, startY: 176,    // 30x20 map = 480x320px
-        signX: 432, signY: 160,     // across the two-room divider
+        startX: 32, startY: 176,
+        signX: 432, signY: 160,
         question: "What's our favourite thing to cook together at home?",
         options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0  // [TODO]
+        correctIndex: 0
     },
 ];
 
@@ -139,7 +136,7 @@ class TitleScene extends Phaser.Scene {
         eKey.once('down', () => {
             this.cameras.main.fadeOut(800, 0, 0, 0);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-                this.scene.start('GameScene', { levelIndex: 3 }); // DEBUG: Start with Level 3 (Sicily)
+                this.scene.start('GameScene', { levelIndex: 5 }); // DEBUG: Start with Level 5 (Van in Sand)
             });
         });
     }
@@ -187,11 +184,15 @@ class GameScene extends Phaser.Scene {
     private activeQuestion: Question | null = null;
 
     private currentLevelIndex = 0;
+    private isDrivingVan = false;
+    private hasDismountedVan = false;
+    private vanSprite!: Phaser.Physics.Arcade.Sprite;
 
     constructor() { super('GameScene'); }
 
     init(data: any) {
-        this.currentLevelIndex = data.levelIndex || 0;
+        // MOCK: Start the game directly at the "Van in the sand" level (5)
+        this.currentLevelIndex = data.levelIndex !== undefined ? data.levelIndex : 5;
         this.interactables = [];
         this.activeInteractable = null;
         this.isDialogActive = false;
@@ -254,12 +255,16 @@ class GameScene extends Phaser.Scene {
         this.load.image('direction', '/assets/direction.png');
 
         // Level 4 objects
+        this.load.image('lanzarote_bg', '/assets/lanzarote_background.jpg');
         this.load.image('volcanic_rock_1', '/assets/volcanic_rock_1.png');
         this.load.image('volcanic_rock_2', '/assets/volcanic_rock_2.png');
         this.load.image('van', '/assets/van.png');
+        this.load.image('papagayo', '/assets/papagayo.png');
 
         // Level 5 objects
         this.load.image('van_sand', '/assets/van_sand.png');
+        this.load.image('sand_lanzarote', '/assets/sand_lanzarote.png');
+        this.load.spritesheet('carlos', '/assets/carlos.png', { frameWidth: 128, frameHeight: 128 });
 
         // Level 6 objects 
         this.load.image('table', '/assets/table.png');
@@ -296,7 +301,7 @@ class GameScene extends Phaser.Scene {
         const detailedImages = [
             'tesla', 'apartment_door', 'night_pole', 'olive_tree', 'basel_painting', 'frames', 'picnic',
             'tent', 'fireplace', 'tree_1', 'tree_2', 'sicilian_market_1', 'sicilian_market_2', 'sicilian_market_3', 'sicilian_house',
-            'volcanic_rock_1', 'volcanic_rock_2', 'van', 'van_sand', 'table', 'tortellini_shape', 'rolling_pin',
+            'lanzarote_bg', 'timanfaya_bg', 'papagayo', 'volcanic_rock_1', 'volcanic_rock_2', 'van', 'van_sand', 'table', 'tortellini_shape', 'rolling_pin',
             'snow_tracks', 'socks', 'parmigiano_1', 'parmigiano_2', 'parmigiano_3', 'factory_shelf', 'sofa', 'macbook', 'cooking_pot',
             'road_asphalt', 'sidewalk_pavement', 'building_1', 'building_2', 'building_3', 'spark_car',
             'butterfly', 'bird',
@@ -334,6 +339,10 @@ class GameScene extends Phaser.Scene {
                 mapWidth = 320; mapHeight = 300;
             } else if (this.currentLevelIndex === 3) {
                 mapWidth = 2000; mapHeight = 400;
+            } else if (this.currentLevelIndex === 4) {
+                mapWidth = 2500; mapHeight = 384; // Map height dictated by 2 rows of scale 0.1 (1920*0.1*2=384)
+            } else if (this.currentLevelIndex === 5) {
+                mapWidth = 1000; mapHeight = 300;
             } else {
                 mapWidth = 320; mapHeight = 300;
             }
@@ -399,6 +408,11 @@ class GameScene extends Phaser.Scene {
 
         if (!this.anims.exists('boyfriend-idle')) {
             this.anims.create({ key: 'boyfriend-idle', frames: this.anims.generateFrameNumbers('boyfriend', { start: 0, end: 0 }), frameRate: 1, repeat: 0 });
+        }
+
+        if (!this.anims.exists('carlos-walk-left')) {
+            this.anims.create({ key: 'carlos-walk-left', frames: this.anims.generateFrameNumbers('carlos', { start: 8, end: 11 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'carlos-idle', frames: [{ key: 'carlos', frame: 8 }], frameRate: 1, repeat: 0 });
         }
 
         // ── Level 0 exclusive assets: Tesla, NPC, rain, night tint
@@ -942,7 +956,7 @@ class GameScene extends Phaser.Scene {
 
             // Market stalls: two rows forming a horizontal corridor
             // Top row y=135, Bottom row y=265
-            const stallXs = [100, 170, 250, 330, 410, 480, 550];
+            const stallXs = [60, 130, 200, 270, 340, 410, 480, 550];
             const stallTypes = ['sicilian_market_1', 'sicilian_market_2', 'sicilian_market_3'];
 
             stallXs.forEach((x, i) => {
@@ -953,21 +967,9 @@ class GameScene extends Phaser.Scene {
 
                 // Bottom row stall - rotated 180 degrees
                 const bm = this.physics.add.staticImage(x, 265, stallTypes[(i + 1) % 3]).setDepth(1).setScale(0.195).setAngle(180);
-                bm.refreshBody();
+                bm.refreshBody();  // Refresh after rotation to align physics body
                 this.physics.add.collider(this.player, bm);
             });
-
-            // Invisible wall behind top stalls (blocks player from going too far up)
-            const wallTop = this.physics.add.staticImage(300, 125, '__DEFAULT').setAlpha(0).setDepth(0);
-            (wallTop.body as Phaser.Physics.Arcade.StaticBody).setSize(660, 10);
-            wallTop.refreshBody();
-            this.physics.add.collider(this.player, wallTop);
-
-            // Invisible wall behind bottom stalls (blocks player from going too far down)
-            const wallBot = this.physics.add.staticImage(300, 275, '__DEFAULT').setAlpha(0).setDepth(0);
-            (wallBot.body as Phaser.Physics.Arcade.StaticBody).setSize(660, 10);
-            wallBot.refreshBody();
-            this.physics.add.collider(this.player, wallBot);
 
             // Panda car – near spawn
             this.add.image(30, 200, 'panda').setDepth(1).setScale(0.13);
@@ -1000,24 +1002,30 @@ class GameScene extends Phaser.Scene {
             // ──────────────────────────────────────────────────────────────────
             // TRANSITION 1: Siracusa → Beach (x 600 – 750)
             const trans1Sand = this.add.tileSprite(675, 200, 150, 400, 'sand').setDepth(0);
-            trans1Sand.tileScaleX = 0.125; trans1Sand.tileScaleY = 0.125;
+            trans1Sand.tileScaleX = 0.02; trans1Sand.tileScaleY = 0.02;
 
-            // Cobblestone horizontal walls (y=150 and y=250) - touching at 20px spacing
+            // Cobblestone visual decorations (no collision)
             for (let cx = 600; cx <= 750; cx += 20) {
-                const cl = this.physics.add.staticImage(cx, 150, 'cobblestone').setDepth(1).setScale(0.05).setAngle(90);
-                cl.refreshBody();
-                this.physics.add.collider(this.player, cl);
-
-                const cr = this.physics.add.staticImage(cx, 250, 'cobblestone').setDepth(1).setScale(0.05).setAngle(-90);
-                cr.refreshBody();
-                this.physics.add.collider(this.player, cr);
+                this.add.image(cx, 175, 'cobblestone').setDepth(1).setScale(0.05).setAngle(90);
+                this.add.image(cx, 225, 'cobblestone').setDepth(1).setScale(0.05).setAngle(-90);
             }
+
+            // Invisible collision walls for transition 1
+            const trans1WallTop = this.physics.add.staticImage(675, 165, '__DEFAULT').setAlpha(0).setDepth(0);
+            (trans1WallTop.body as Phaser.Physics.Arcade.StaticBody).setSize(150, 30);
+            trans1WallTop.refreshBody();
+            this.physics.add.collider(this.player, trans1WallTop);
+
+            const trans1WallBot = this.physics.add.staticImage(675, 235, '__DEFAULT').setAlpha(0).setDepth(0);
+            (trans1WallBot.body as Phaser.Physics.Arcade.StaticBody).setSize(150, 30);
+            trans1WallBot.refreshBody();
+            this.physics.add.collider(this.player, trans1WallBot);
 
             // ──────────────────────────────────────────────────────────────────
             // SCENE 2: CALAMOSCHE BEACH (x 750 – 1400)
             // Sand floor
             const beachSand = this.add.tileSprite(1075, 200, 650, 400, 'sand').setDepth(0);
-            beachSand.tileScaleX = 0.125; beachSand.tileScaleY = 0.125;
+            beachSand.tileScaleX = 0.02; beachSand.tileScaleY = 0.02;
 
             // Sea at the bottom
             const seaSprite = this.add.tileSprite(1075, 360, 650, 80, 'sea').setDepth(1);
@@ -1036,20 +1044,38 @@ class GameScene extends Phaser.Scene {
             (this as any)._bf2 = boyfriend2;
             (this as any)._bf2X = 850; // trigger X
 
+            // Invisible collision walls for beach
+            const beachWallTop = this.physics.add.staticImage(1075, 165, '__DEFAULT').setAlpha(0).setDepth(0);
+            (beachWallTop.body as Phaser.Physics.Arcade.StaticBody).setSize(650, 30);
+            beachWallTop.refreshBody();
+            this.physics.add.collider(this.player, beachWallTop);
+
+            const beachWallBot = this.physics.add.staticImage(1075, 235, '__DEFAULT').setAlpha(0).setDepth(0);
+            (beachWallBot.body as Phaser.Physics.Arcade.StaticBody).setSize(650, 30);
+            beachWallBot.refreshBody();
+            this.physics.add.collider(this.player, beachWallBot);
+
             // ──────────────────────────────────────────────────────────────────
             // TRANSITION 2: Beach → Oasis (x 1400 – 1550)
             const trans2Sand = this.add.tileSprite(1475, 200, 150, 400, 'sand').setDepth(0);
-            trans2Sand.tileScaleX = 0.125; trans2Sand.tileScaleY = 0.125;
+            trans2Sand.tileScaleX = 0.02; trans2Sand.tileScaleY = 0.02;
 
+            // Cobblestone visual decorations (no collision)
             for (let cx2 = 1400; cx2 <= 1550; cx2 += 20) {
-                const cl2 = this.physics.add.staticImage(cx2, 150, 'cobblestone').setDepth(1).setScale(0.05).setAngle(90);
-                cl2.refreshBody();
-                this.physics.add.collider(this.player, cl2);
-
-                const cr2 = this.physics.add.staticImage(cx2, 250, 'cobblestone').setDepth(1).setScale(0.05).setAngle(-90);
-                cr2.refreshBody();
-                this.physics.add.collider(this.player, cr2);
+                this.add.image(cx2, 175, 'cobblestone').setDepth(1).setScale(0.05).setAngle(90);
+                this.add.image(cx2, 225, 'cobblestone').setDepth(1).setScale(0.05).setAngle(-90);
             }
+
+            // Invisible collision walls for transition 2
+            const trans2WallTop = this.physics.add.staticImage(1475, 165, '__DEFAULT').setAlpha(0).setDepth(0);
+            (trans2WallTop.body as Phaser.Physics.Arcade.StaticBody).setSize(150, 30);
+            trans2WallTop.refreshBody();
+            this.physics.add.collider(this.player, trans2WallTop);
+
+            const trans2WallBot = this.physics.add.staticImage(1475, 235, '__DEFAULT').setAlpha(0).setDepth(0);
+            (trans2WallBot.body as Phaser.Physics.Arcade.StaticBody).setSize(150, 30);
+            trans2WallBot.refreshBody();
+            this.physics.add.collider(this.player, trans2WallBot);
 
             // Direction signpost
             this.add.image(1475, 200, 'direction').setDepth(1).setScale(0.08);
@@ -1057,7 +1083,7 @@ class GameScene extends Phaser.Scene {
             // ──────────────────────────────────────────────────────────────────
             // SCENE 3: OASI DELLA FRUTTA (x 1550 – 2000)
             const oasisSand = this.add.tileSprite(1775, 200, 450, 400, 'sand').setDepth(0);
-            oasisSand.tileScaleX = 0.125; oasisSand.tileScaleY = 0.125;
+            oasisSand.tileScaleX = 0.02; oasisSand.tileScaleY = 0.02;
 
             // NEW Oasis asset
             this.add.image(1850, 200, 'oasis').setDepth(1).setScale(0.2);
@@ -1072,23 +1098,45 @@ class GameScene extends Phaser.Scene {
             (this as any)._bf3 = boyfriend3;
             (this as any)._bf3X = 1650; // trigger X
 
+            // Invisible collision walls for oasis
+            const oasisWallTop = this.physics.add.staticImage(1775, 165, '__DEFAULT').setAlpha(0).setDepth(0);
+            (oasisWallTop.body as Phaser.Physics.Arcade.StaticBody).setSize(450, 30);
+            oasisWallTop.refreshBody();
+            this.physics.add.collider(this.player, oasisWallTop);
+
+            const oasisWallBot = this.physics.add.staticImage(1775, 235, '__DEFAULT').setAlpha(0).setDepth(0);
+            (oasisWallBot.body as Phaser.Physics.Arcade.StaticBody).setSize(450, 30);
+            oasisWallBot.refreshBody();
+            this.physics.add.collider(this.player, oasisWallBot);
+
             (this as any)._setupBf2 = () => {
+                let bf2Stage = 0;
                 this.interactables = [{
                     x: boyfriend2.x, y: boyfriend2.y, radius: 36,
-                    getQuestion: () => ({
-                        prompt: 'David: "che posto assurdo... ma come si chiama questa spiaggia?"',
-                        options: ['Calamosche', 'Cala Rossa', 'Isola delle Correnti'],
-                        correctIndex: 0,
-                        onCorrect: () => {
-                            this.closeHTMLDialog();
-                            this.tweens.add({
-                                targets: boyfriend2, alpha: 0, duration: 800, onComplete: () => {
-                                    boyfriend2.body.enable = false;
-                                    this.interactables = [];
+                    getQuestion: () => {
+                        if (bf2Stage === 0) {
+                            return {
+                                prompt: 'David: "questo ombrello va benissimo, non preocupparti..."',
+                                onComplete: () => {
+                                    this.closeHTMLDialog();
+                                    bf2Stage = 1;
                                 }
-                            });
+                            };
+                        } else {
+                            return {
+                                prompt: 'David: "ok vado a vedere i pesciolini..."',
+                                onComplete: () => {
+                                    this.closeHTMLDialog();
+                                    this.tweens.add({
+                                        targets: boyfriend2, alpha: 0, duration: 800, onComplete: () => {
+                                            boyfriend2.body.enable = false;
+                                            this.interactables = [];
+                                        }
+                                    });
+                                }
+                            };
                         }
-                    })
+                    }
                 }];
             };
 
@@ -1096,8 +1144,8 @@ class GameScene extends Phaser.Scene {
                 this.interactables = [{
                     x: boyfriend3.x, y: boyfriend3.y, radius: 36,
                     getQuestion: () => ({
-                        prompt: 'David: "guarda che roba... ma dove siamo esatti?"',
-                        options: ['Oasi della Frutta', 'Mercato di Ortigia', 'Bar del Porto'],
+                        prompt: 'David: "no vabe guarda sto posto, ci fermiamo a prendere qualcosa?"',
+                        options: ['yes', 'yes'],
                         correctIndex: 0,
                         onCorrect: () => {
                             this.closeHTMLDialog();
@@ -1116,16 +1164,52 @@ class GameScene extends Phaser.Scene {
 
         // ── Level 4: Lanzarote
         if (this.currentLevelIndex === 4) {
-            this.add.image(150, 200, 'volcanic_rock_1').setDepth(1).setScale(0.08);
-            this.add.image(600, 350, 'volcanic_rock_2').setDepth(1).setScale(0.08);
-            this.add.image(300, 600, 'volcanic_rock_1').setDepth(1).setScale(0.08);
-            this.add.image(500, 150, 'van').setDepth(1).setScale(0.15);
+            const bgScale = 0.1;
+            const bgWidth = 1920 * bgScale;
+            const bgHeight = 1920 * bgScale;
+
+            for (let row = 0; row < 2; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const x = col * bgWidth;
+                    const y = row * bgHeight;
+                    const img = this.add.image(x, y, 'lanzarote_bg').setOrigin(0, 0).setDepth(-1).setScale(bgScale);
+                    if (col % 2 === 1) img.setFlipX(true);
+                    if (row % 2 === 1) img.setFlipY(true);
+                }
+            }
+
+            const roadScale = 0.1;
+            // The tileScale only scales the inner texture, so the sprite's width should be the exact world length we want to draw.
+            // Since the van stops at x=1050, we set the road width to 1100.
+            const road = this.add.tileSprite(0, 150, 1000, 60, 'road_asphalt').setOrigin(0, 0).setDepth(0);
+            road.tileScaleX = roadScale; road.tileScaleY = roadScale;
+
+            // Place Papagayo at the end of the 5-tile grid (5 * 1920 * 0.1 = 960)
+            this.add.image(960, 0, 'papagayo').setOrigin(0, 0).setDepth(-2).setScale(0.13);
+            this.vanSprite = this.physics.add.sprite(32, 153, 'van').setDepth(1).setScale(0.12);
+            this.isDrivingVan = true;
+            this.hasDismountedVan = false;
+            this.player.setVisible(false);
+            (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
+
+            this.cameras.main.startFollow(this.vanSprite, true, 0.1, 0.1);
         }
+
+
 
         // ── Level 5: Lanzarote pt2 - Van in the Sand
         if (this.currentLevelIndex === 5) {
-            this.add.image(240, 400, 'van_sand').setDepth(1).setAngle(15).setScale(0.15); // Tilted stuck van
-            this.add.image(100, 300, 'volcanic_rock_2').setDepth(1).setScale(0.08);
+            // Unscaled repeated sand texture filling the background map
+            const bg = this.add.tileSprite(0, 0, 2000, 1000, 'sand_lanzarote').setOrigin(0, 0).setDepth(-1);
+            bg.tileScaleX = 0.03; bg.tileScaleY = 0.03;
+
+            this.vanSprite = this.physics.add.sprite(32, 160, 'van').setDepth(1).setScale(0.12);
+            this.isDrivingVan = true;
+            this.hasDismountedVan = false;
+            this.player.setVisible(false);
+            (this.player.body as Phaser.Physics.Arcade.Body).enable = false;
+
+            this.cameras.main.startFollow(this.vanSprite, true, 0.1, 0.1);
         }
 
         // ── Level 6: Tortellini with Nonna
@@ -1380,26 +1464,210 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        const body = this.player.body as Phaser.Physics.Arcade.Body;
-        body.setVelocity(0);
-
-        let moving = false;
-        if (this.keys.left.isDown) { body.setVelocityX(-this.SPEED); this.lastDir = 'left'; moving = true; }
-        if (this.keys.right.isDown) { body.setVelocityX(+this.SPEED); this.lastDir = 'right'; moving = true; }
-        if (this.keys.up.isDown) { body.setVelocityY(-this.SPEED); this.lastDir = 'up'; moving = true; }
-        if (this.keys.down.isDown) { body.setVelocityY(+this.SPEED); this.lastDir = 'down'; moving = true; }
-
-        if (moving) {
-            this.player.anims.play(`walk-${this.lastDir}`, true);
-        } else {
-            this.player.anims.play('idle', true);
-        }
-
         this.activeInteractable = null;
         this.interactPrompt.setVisible(false);
 
+        if (this.isDrivingVan && !this.hasDismountedVan && this.vanSprite) {
+            const vanBody = this.vanSprite.body as Phaser.Physics.Arcade.Body;
+            vanBody.setVelocity(0);
+
+            // Van can only move horizontally
+            let speedMult = 1.5;
+            if (this.currentLevelIndex === 5 && this.vanSprite.x > 200) {
+                // Slow down the van before it hits the stuck point (at 300)
+                speedMult = 0.5;
+            }
+            
+            if (this.keys.left.isDown) { vanBody.setVelocityX(-this.SPEED * speedMult); this.vanSprite.setFlipX(true); }
+            if (this.keys.right.isDown) { vanBody.setVelocityX(+this.SPEED * speedMult); this.vanSprite.setFlipX(false); }
+
+            // Check if arrived at beach
+            const stopPoint = this.currentLevelIndex === 4 ? 950 : 300;
+            if (this.vanSprite.x > stopPoint) {
+                vanBody.setVelocityX(0); // Stop the van
+
+                // Dismount logic interaction
+                this.interactables = [{
+                    x: this.vanSprite.x,
+                    y: this.vanSprite.y,
+                    radius: 80,
+                    getQuestion: () => ({
+                        prompt: "Press E to dismount from the van",
+                        onComplete: () => {
+                            this.hasDismountedVan = true;
+                            this.isDrivingVan = false;
+                            this.player.setVisible(true);
+                            this.player.setPosition(this.vanSprite.x + 30, this.vanSprite.y + 20);
+                            (this.player.body as Phaser.Physics.Arcade.Body).enable = true;
+                            this.vanSprite.body!.immovable = true;
+                            this.physics.add.collider(this.player, this.vanSprite);
+                            this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+
+                            if (this.currentLevelIndex === 4) {
+                                // Load boyfriend interaction after dismounting (Level 4)
+                                const boyfriend = this.physics.add.staticSprite(1250, 200, 'boyfriend').setDepth(2).setScale(0.125);
+                                boyfriend.anims.play('boyfriend-idle');
+
+                                this.interactables = [{
+                                    x: 1250,
+                                    y: 200,
+                                    radius: 40,
+                                    getQuestion: () => ({
+                                        prompt: "Bella Papagayolo sai chi ha costruito questa spiaggia?",
+                                        options: ["Manrique", "César", "un famoso artista e architetto delle canarie"],
+                                        correctIndex: 0,
+                                        onCorrect: () => {
+                                            this.showHTMLDialog({
+                                                prompt: "mi devi dire qualcosa?",
+                                                options: ["Bisogna svuotare le acque grigie", "Il cous cous si è scotto", "Tele club stasera?", "Ti Amo"],
+                                                correctIndex: 3,
+                                                onCorrect: () => {
+                                                    this.showHTMLDialog({ prompt: "✓ Correct! Memory unlocked." });
+                                                    setTimeout(() => {
+                                                        this.closeHTMLDialog();
+                                                        this.advanceLevel();
+                                                    }, 1500);
+                                                }
+                                            });
+                                        }
+                                    })
+                                }];
+                            } else if (this.currentLevelIndex === 5) {
+                                // Level 5 Dis-mount logic
+                                this.vanSprite.setTexture('van_sand');
+                                this.vanSprite.setScale(0.1425); // NO ANGLE (no tilt), 5% smaller than before
+                                
+                                // Adjust visual offset because van_sand is a slightly different size
+                                this.vanSprite.setPosition(this.vanSprite.x + 30, this.vanSprite.y + 15);
+
+                                const bfX = this.vanSprite.x + 70;
+                                const bfY = this.vanSprite.y + 20;
+                                const boyfriend = this.physics.add.staticSprite(bfX, bfY, 'boyfriend').setDepth(2).setScale(0.125);
+                                boyfriend.anims.play('boyfriend-idle');
+                                boyfriend.setAlpha(0);
+                                this.tweens.add({ targets: boyfriend, alpha: 1, duration: 800 });
+
+                                const createEndBfInteraction = () => {
+                                    this.interactables = [{
+                                        x: bfX, y: bfY, radius: 40,
+                                        getQuestion: () => ({
+                                            prompt: "grandeee, con questo ce la faremo sicuramente...",
+                                            onComplete: () => {
+                                                this.showHTMLDialog({
+                                                    prompt: "mmm...",
+                                                    onComplete: () => {
+                                                        this.showHTMLDialog({
+                                                            prompt: "mi sa che dormiamo qui",
+                                                            onComplete: () => {
+                                                                this.closeHTMLDialog();
+                                                                this.interactables = []; // Clear for now
+
+                                                                // Spawn Carlos off-screen right
+                                                                const carlosX = bfX + 300;
+                                                                const carlosY = bfY;
+                                                                const carlos = this.physics.add.sprite(carlosX, carlosY, 'carlos').setDepth(2).setScale(0.125);
+                                                                carlos.setFlipX(false); // Do not flip horizontally, let the row frames dictate direction
+                                                                (carlos.body as Phaser.Physics.Arcade.Body).immovable = true;
+                                                                carlos.anims.play('carlos-walk-left', true);
+
+                                                                // Tween walking towards boyfriend
+                                                                this.tweens.add({
+                                                                    targets: carlos,
+                                                                    x: bfX + 60,
+                                                                    duration: 3000,
+                                                                    onComplete: () => {
+                                                                        carlos.anims.play('carlos-idle', true);
+                                                                        this.interactables = [{
+                                                                            x: bfX + 60, y: carlosY, radius: 40,
+                                                                            getQuestion: () => ({
+                                                                                prompt: "hola, mi chiamo carlos, acabo de terminar de trabajar en mi pizzería",
+                                                                                onComplete: () => {
+                                                                                    this.showHTMLDialog({
+                                                                                        prompt: "Cómo se llama mi pizzería? parlos anche italiano...",
+                                                                                        options: ["Erbazzones", "Ciapapolveres", "cajun", "El Sabio"],
+                                                                                        correctIndex: 3,
+                                                                                        onCorrect: () => {
+                                                                                            this.showHTMLDialog({
+                                                                                                prompt: "ah husto, ecco una tabla de madera",
+                                                                                                onComplete: () => {
+                                                                                                    this.showHTMLDialog({ prompt: "✓ Memory unlocked." });
+                                                                                                    setTimeout(() => {
+                                                                                                        this.closeHTMLDialog();
+                                                                                                        this.advanceLevel();
+                                                                                                    }, 1500);
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            })
+                                                                        }];
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        })
+                                    }];
+                                };
+
+                                const createVanCenterInteraction = () => {
+                                    this.interactables = [{
+                                        x: this.vanSprite.x, y: this.vanSprite.y + 20, radius: 40, // center bottom
+                                        getQuestion: () => ({
+                                            prompt: "vediamo cosa c'è...",
+                                            options: ["tappetini", "tagliere", "asse di legno"],
+                                            correctIndex: 1,
+                                            onCorrect: () => {
+                                                this.showHTMLDialog({ prompt: "Hai trovato il tagliere!" });
+                                                setTimeout(() => {
+                                                    this.closeHTMLDialog();
+                                                    createEndBfInteraction();
+                                                }, 1500);
+                                            }
+                                        })
+                                    }];
+                                };
+
+                                this.interactables = [{
+                                    x: bfX, y: bfY, radius: 40,
+                                    getQuestion: () => ({
+                                        prompt: "ma che cazzo...e ora come facciamo?",
+                                        onComplete: () => {
+                                            this.closeHTMLDialog();
+                                            createVanCenterInteraction();
+                                        }
+                                    })
+                                }];
+                            }
+                        }
+                    })
+                }];
+            } else {
+                this.interactables = []; // Clear interactables while driving before beach
+            }
+        } else {
+            const body = this.player.body as Phaser.Physics.Arcade.Body;
+            body.setVelocity(0);
+
+            let moving = false;
+            if (this.keys.left.isDown) { body.setVelocityX(-this.SPEED); this.lastDir = 'left'; moving = true; }
+            if (this.keys.right.isDown) { body.setVelocityX(+this.SPEED); this.lastDir = 'right'; moving = true; }
+            if (this.keys.up.isDown) { body.setVelocityY(-this.SPEED); this.lastDir = 'up'; moving = true; }
+            if (this.keys.down.isDown) { body.setVelocityY(+this.SPEED); this.lastDir = 'down'; moving = true; }
+
+            if (moving) {
+                this.player.anims.play(`walk-${this.lastDir}`, true);
+            } else {
+                this.player.anims.play('idle', true);
+            }
+        }
+
         for (const obj of this.interactables) {
-            const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, obj.x, obj.y);
+            const targetSprite = (this.isDrivingVan && !this.hasDismountedVan) ? this.vanSprite : this.player;
+            const dist = Phaser.Math.Distance.Between(targetSprite.x, targetSprite.y, obj.x, obj.y);
             if (dist <= obj.radius) {
                 this.activeInteractable = obj;
                 this.interactPrompt.setPosition(obj.x, obj.y - 12);
