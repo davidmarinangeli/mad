@@ -23,16 +23,16 @@ interface Question {
 // Map pixel coords = tile * 16. E.g. tile(3,13) on a 60x16 map = pixel(48, 208).
 // [TODO] Replace placeholder questions / answers with real ones before gifting!
 const LEVELS = [
-    { title: 'The Apartment Street', mapKey: 'map_0', startX: 160, startY: 270, signX: 280, signY: 80, questionId: 'q-apartment', isCustomMap: true },
+    { title: '14 aprile 2025', mapKey: 'map_0', startX: 160, startY: 270, signX: 280, signY: 80, questionId: 'q-apartment', isCustomMap: true },
     {
         mapKey: 'map_1',
-        title: "1st of May",
+        title: "Primo Maggio",
         startX: 32, startY: 120,    // 20x15 map = 320x240px
         signX: 280, signY: 120      // Not used (custom multi-stage logic)
     },
     {
         mapKey: 'map_2',
-        title: "Tuscany Glamping",
+        title: "Primo di...",
         startX: 64, startY: 317,    // 3x3 map @ 127px tiles = 381x381px
         signX: 317, signY: 64,      // top-right in the clearing
         question: "What was the name of the glamping site?",
@@ -41,7 +41,7 @@ const LEVELS = [
     },
     {
         mapKey: 'map_3',
-        title: "Sicily",
+        title: "Arancin*",
         startX: 10, startY: 180,    // horizontal flow - spawn far left, clear of stalls
         signX: 0, signY: 0,
         isCustomMap: true,
@@ -56,47 +56,25 @@ const LEVELS = [
 
     {
         mapKey: 'map_5',
-        title: "Lanzarote: Van in the Sand",
+        title: "Lanzarote, PT2",
         startX: 32, startY: 150,
         signX: 0, signY: 0,
         isCustomMap: true
     },
     {
         mapKey: 'map_7',
-        title: "Tortellini with Nonna",
-        startX: 32, startY: 272,
-        signX: 256, signY: 160,
-        question: "What's the secret Nonna adds to tortellini filling?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0
+        title: "Tortellini",
+        startX: 2200, startY: 1000,
+        signX: 0, signY: 0,
+        isCustomMap: true
     },
     {
         mapKey: 'map_8',
-        title: "Snow Trekking",
-        startX: 160, startY: 1072,
-        signX: 160, signY: 48,
-        question: "How did I attempt to dry my soaking socks by the fire?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0
-    },
-    {
-        mapKey: 'map_9',
-        title: "Parmesan Factory",
-        startX: 32, startY: 288,
-        signX: 592, signY: 176,
-        question: "How many months does the parmesan we tasted age for?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0
-    },
-    {
-        mapKey: 'map_10',
-        title: "At Your Apartment",
-        startX: 32, startY: 176,
-        signX: 432, signY: 160,
-        question: "What's our favourite thing to cook together at home?",
-        options: ["Option A", "Option B", "Option C"],
-        correctIndex: 0
-    },
+        title: "A casa, finalmente",
+        startX: 2600, startY: 400,
+        signX: 0, signY: 0,
+        isCustomMap: true
+    }
 ];
 
 // ─── Title Scene ───────────────────────────────────────────────────────────
@@ -111,13 +89,13 @@ class TitleScene extends Phaser.Scene {
         this.cameras.main.setZoom(4);
         this.cameras.main.centerOn(160, 90);
 
-        this.add.text(160, 70, 'CORE MEMORIES', {
+        this.add.text(160, 70, 'PRIMO DI MOLTI', {
             fontFamily: '"Press Start 2P"',
             fontSize: '14px',
             color: '#f8fafc'
         }).setOrigin(0.5);
 
-        const prompt = this.add.text(160, 120, 'PRESS [E] TO START', {
+        const prompt = this.add.text(160, 120, 'PREMI [E] PER INIZIARE', {
             fontFamily: '"Press Start 2P"',
             fontSize: '8px',
             color: '#94a3b8'
@@ -136,7 +114,7 @@ class TitleScene extends Phaser.Scene {
         eKey.once('down', () => {
             this.cameras.main.fadeOut(800, 0, 0, 0);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-                this.scene.start('GameScene', { levelIndex: 5 }); // DEBUG: Start with Level 5 (Van in Sand)
+                this.scene.start('GameScene', { levelIndex: 0 });
             });
         });
     }
@@ -156,13 +134,13 @@ class EndScene extends Phaser.Scene {
         this.cameras.main.setZoom(4);
         this.cameras.main.centerOn(160, 90);
 
-        this.add.text(160, 70, 'HAPPY ANNIVERSARY', {
+        this.add.text(160, 70, 'BUON 15 APRILE!', {
             fontFamily: '"Press Start 2P"',
             fontSize: '12px',
             color: '#22c55e'
         }).setOrigin(0.5);
 
-        this.add.text(160, 110, 'Thanks for playing <3', {
+        this.add.text(160, 110, 'Grazie per aver giocato \nal "Primo di Molti". \nPronta per rigiocare \nanche quest\'anno? <3', {
             fontFamily: '"Press Start 2P"',
             fontSize: '8px',
             color: '#94a3b8'
@@ -191,8 +169,8 @@ class GameScene extends Phaser.Scene {
     constructor() { super('GameScene'); }
 
     init(data: any) {
-        // MOCK: Start the game directly at the "Van in the sand" level (5)
-        this.currentLevelIndex = data.levelIndex !== undefined ? data.levelIndex : 5;
+        // Start the game at the beginning
+        this.currentLevelIndex = data.levelIndex !== undefined ? data.levelIndex : 4;
         this.interactables = [];
         this.activeInteractable = null;
         this.isDialogActive = false;
@@ -276,33 +254,38 @@ class GameScene extends Phaser.Scene {
         this.load.image('socks', '/assets/socks.png');
 
         // Level 8 objects 
-        this.load.image('parmigiano_1', '/assets/parmigiano_1.png');
-        this.load.image('parmigiano_2', '/assets/parmigiano_2.png');
-        this.load.image('parmigiano_3', '/assets/parmigiano_3.png');
-        this.load.image('factory_shelf', '/assets/factory_shelf.png');
-
-        // Level 9 objects 
-        this.load.image('sofa', '/assets/sofa.png');
-        this.load.image('macbook', '/assets/macbook.png');
-        this.load.image('cooking_pot', '/assets/cooking_pot.png');
+        this.load.image('apartment', '/assets/apartment.png');
+        this.load.image('nonna_apartment', '/assets/nonna_apartment.png');
+        this.load.spritesheet('amber', '/assets/amber.png', { frameWidth: 128, frameHeight: 128 });
 
         // Characters (Upgraded 128x128 spritesheets inside 512x512 grids)
         this.load.spritesheet('character', '/assets/main_character.png', { frameWidth: 128, frameHeight: 128 });
         this.load.spritesheet('nonna', '/assets/nonna.png', { frameWidth: 128, frameHeight: 128 });
         this.load.spritesheet('sister', '/assets/sister.png', { frameWidth: 128, frameHeight: 128 });
+        this.load.spritesheet('sister_nonnas', '/assets/sister_nonnas.png', { frameWidth: 128, frameHeight: 128 });
         this.load.spritesheet('boyfriend', '/assets/boyfriend.png', { frameWidth: 128, frameHeight: 128 });
     }
 
     create() {
         this.cameras.main.fadeIn(800, 0, 0, 0);
-        this.cameras.main.setZoom(4);
+        // Determine base zoom: normal is 4, +20% zoom is 4.8
+        let targetZoom = 4.8;
+        if (this.currentLevelIndex === 0) {
+            targetZoom = 5.8; // Zoomed in an extra 20%
+        } else if (this.currentLevelIndex === 6 || this.currentLevelIndex === 7) {
+            targetZoom = 0.5; // Huge maps
+        } else if (this.currentLevelIndex === 4) {
+            targetZoom = 4; // Original zoom for Lanzarote PT1 map
+        }
+        this.cameras.main.setZoom(targetZoom);
+
 
         // Apply LINEAR anti-aliasing filter to detailed custom images so they render smoothly in High-DPI mode
         const detailedImages = [
             'tesla', 'apartment_door', 'night_pole', 'olive_tree', 'basel_painting', 'frames', 'picnic',
             'tent', 'fireplace', 'tree_1', 'tree_2', 'sicilian_market_1', 'sicilian_market_2', 'sicilian_market_3', 'sicilian_house',
             'lanzarote_bg', 'timanfaya_bg', 'papagayo', 'volcanic_rock_1', 'volcanic_rock_2', 'van', 'van_sand', 'table', 'tortellini_shape', 'rolling_pin',
-            'snow_tracks', 'socks', 'parmigiano_1', 'parmigiano_2', 'parmigiano_3', 'factory_shelf', 'sofa', 'macbook', 'cooking_pot',
+            'sofa', 'macbook', 'cooking_pot', 'nonna_apartment',
             'road_asphalt', 'sidewalk_pavement', 'building_1', 'building_2', 'building_3', 'spark_car',
             'butterfly', 'bird',
             'panda', 'umbrella', 'direction', 'oasis_fruit', 'sicily_pavement', 'cobblestone', 'sand', 'sea',
@@ -343,6 +326,10 @@ class GameScene extends Phaser.Scene {
                 mapWidth = 2500; mapHeight = 384; // Map height dictated by 2 rows of scale 0.1 (1920*0.1*2=384)
             } else if (this.currentLevelIndex === 5) {
                 mapWidth = 1000; mapHeight = 300;
+            } else if (this.currentLevelIndex === 6) {
+                mapWidth = 2861; mapHeight = 2861;
+            } else if (this.currentLevelIndex === 7) {
+                mapWidth = 2861; mapHeight = 2792;
             } else {
                 mapWidth = 320; mapHeight = 300;
             }
@@ -354,9 +341,9 @@ class GameScene extends Phaser.Scene {
             // Use grass_02 for Level 1, tuscany_grass for Level 2, grass_01 for others
             let grassKey = 'grass';
             let grassTilesetName = 'grass';
-            if (this.currentLevelIndex === 1) {
+            if (levelConfig.mapKey === 'map_1') {
                 grassKey = 'grass02';
-            } else if (this.currentLevelIndex === 2) {
+            } else if (levelConfig.mapKey === 'map_2') {
                 grassKey = 'tuscany_grass';
                 grassTilesetName = 'tuscany_grass';
             }
@@ -406,13 +393,29 @@ class GameScene extends Phaser.Scene {
             this.anims.create({ key: 'sister-idle', frames: this.anims.generateFrameNumbers('sister', { start: 0, end: 0 }), frameRate: 1, repeat: 0 });
         }
 
+        if (!this.anims.exists('sister_nonnas-idle')) {
+            this.anims.create({ key: 'sister_nonnas-idle', frames: this.anims.generateFrameNumbers('sister_nonnas', { start: 0, end: 0 }), frameRate: 1, repeat: 0 });
+            this.anims.create({ key: 'sister_nonnas-walk-down', frames: this.anims.generateFrameNumbers('sister_nonnas', { start: 0, end: 3 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'sister_nonnas-walk-left', frames: this.anims.generateFrameNumbers('sister_nonnas', { start: 4, end: 7 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'sister_nonnas-walk-right', frames: this.anims.generateFrameNumbers('sister_nonnas', { start: 8, end: 11 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'sister_nonnas-walk-up', frames: this.anims.generateFrameNumbers('sister_nonnas', { start: 12, end: 15 }), frameRate: 8, repeat: -1 });
+        }
+
         if (!this.anims.exists('boyfriend-idle')) {
             this.anims.create({ key: 'boyfriend-idle', frames: this.anims.generateFrameNumbers('boyfriend', { start: 0, end: 0 }), frameRate: 1, repeat: 0 });
+            this.anims.create({ key: 'boyfriend-walk-down', frames: this.anims.generateFrameNumbers('boyfriend', { start: 0, end: 3 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'boyfriend-walk-right', frames: this.anims.generateFrameNumbers('boyfriend', { start: 4, end: 7 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'boyfriend-walk-left', frames: this.anims.generateFrameNumbers('boyfriend', { start: 8, end: 11 }), frameRate: 8, repeat: -1 });
+            this.anims.create({ key: 'boyfriend-walk-up', frames: this.anims.generateFrameNumbers('boyfriend', { start: 12, end: 15 }), frameRate: 8, repeat: -1 });
         }
 
         if (!this.anims.exists('carlos-walk-left')) {
             this.anims.create({ key: 'carlos-walk-left', frames: this.anims.generateFrameNumbers('carlos', { start: 8, end: 11 }), frameRate: 8, repeat: -1 });
             this.anims.create({ key: 'carlos-idle', frames: [{ key: 'carlos', frame: 8 }], frameRate: 1, repeat: 0 });
+        }
+
+        if (!this.anims.exists('amber-idle')) {
+            this.anims.create({ key: 'amber-idle', frames: this.anims.generateFrameNumbers('amber', { start: 0, end: 3 }), frameRate: 4, repeat: -1 });
         }
 
         // ── Level 0 exclusive assets: Tesla, NPC, rain, night tint
@@ -478,10 +481,10 @@ class GameScene extends Phaser.Scene {
                     correctIndex: 1,
                     onCorrect: () => {
                         this.showHTMLDialog({
-                            prompt: 'David: "allora vado..."\n\n(Press E to continue)',
+                            prompt: 'David: "allora vado..."\n\n(Premi E per continuare)',
                             onComplete: () => {
                                 this.showHTMLDialog({
-                                    prompt: 'Maddalena: "ti inviterei su ma abbiamo 30 anni e domani si lavora..."\n\n(Press E to continue)',
+                                    prompt: 'Maddalena: "ti inviterei su ma abbiamo 30 anni e domani si lavora..."\n\n(Premi E per continuare)',
                                     onComplete: () => {
                                         this.closeHTMLDialog();
                                         this.tweens.add({
@@ -512,7 +515,7 @@ class GameScene extends Phaser.Scene {
                                                                 options: ["i fantasmini", "il mio dente temporaneo", "io no, tu le buone maniere", "l'ombrello nel bagagliaio"],
                                                                 correctIndex: 3,
                                                                 onCorrect: () => {
-                                                                    this.showHTMLDialog({ prompt: "✓ Correct! Memory unlocked." });
+                                                                    this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
                                                                     setTimeout(() => {
                                                                         this.closeHTMLDialog();
                                                                         this.advanceLevel();
@@ -741,7 +744,7 @@ class GameScene extends Phaser.Scene {
                                                                         correctIndex: 1, // "Monte Vangelo"
                                                                         onCorrect: () => {
                                                                             this.showHTMLDialog({
-                                                                                prompt: "✓ Correct! Memory unlocked."
+                                                                                prompt: "✓ Suuuuuuu"
                                                                             });
                                                                             setTimeout(() => {
                                                                                 this.closeHTMLDialog();
@@ -920,7 +923,7 @@ class GameScene extends Phaser.Scene {
                                                                 ],
                                                                 correctIndex: 0,
                                                                 onCorrect: () => {
-                                                                    this.showHTMLDialog({ prompt: "✓ Correct! Memory unlocked." });
+                                                                    this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
                                                                     setTimeout(() => {
                                                                         this.closeHTMLDialog();
                                                                         this.advanceLevel();
@@ -1152,7 +1155,7 @@ class GameScene extends Phaser.Scene {
                             this.tweens.add({
                                 targets: boyfriend3, alpha: 0, duration: 800, onComplete: () => {
                                     boyfriend3.body.enable = false;
-                                    this.showHTMLDialog({ prompt: '✓ Memory unlocked!' });
+                                    this.showHTMLDialog({ prompt: '✓ Suuuuuuu' });
                                     setTimeout(() => { this.closeHTMLDialog(); this.advanceLevel(); }, 1500);
                                 }
                             });
@@ -1181,7 +1184,7 @@ class GameScene extends Phaser.Scene {
             const roadScale = 0.1;
             // The tileScale only scales the inner texture, so the sprite's width should be the exact world length we want to draw.
             // Since the van stops at x=1050, we set the road width to 1100.
-            const road = this.add.tileSprite(0, 150, 1000, 60, 'road_asphalt').setOrigin(0, 0).setDepth(0);
+            const road = this.add.tileSprite(0, 150, 1100, 60, 'road_asphalt').setOrigin(0, 0).setDepth(0);
             road.tileScaleX = roadScale; road.tileScaleY = roadScale;
 
             // Place Papagayo at the end of the 5-tile grid (5 * 1920 * 0.1 = 960)
@@ -1194,8 +1197,6 @@ class GameScene extends Phaser.Scene {
 
             this.cameras.main.startFollow(this.vanSprite, true, 0.1, 0.1);
         }
-
-
 
         // ── Level 5: Lanzarote pt2 - Van in the Sand
         if (this.currentLevelIndex === 5) {
@@ -1214,41 +1215,231 @@ class GameScene extends Phaser.Scene {
 
         // ── Level 6: Tortellini with Nonna
         if (this.currentLevelIndex === 6) {
-            this.add.image(160, 160, 'table').setDepth(0).setScale(0.1);
-            this.add.image(180, 150, 'tortellini_shape').setDepth(1).setScale(0.04);
-            this.add.image(200, 170, 'rolling_pin').setDepth(1).setScale(0.05);
+            this.add.image(0, 0, 'nonna_apartment').setOrigin(0, 0).setDepth(0);
 
-            // Add Nonna NPC
-            const nonna = this.add.sprite(256, 160, 'nonna').setDepth(2).setScale(0.125);
+            // Scale the player up heavily to match the large map
+            this.player.setScale(3);
+            // Tighten the collision body so the huge bounding box doesn't push the player far away 
+            (this.player.body as Phaser.Physics.Arcade.Body).setSize(40, 80);
+
+            // Add Table Collision in the middle - invisible static body
+            const tableCollision = this.add.rectangle(1330, 1630, 1000, 800, 0xff0000, 0).setOrigin(0.5);
+            this.physics.add.existing(tableCollision, true);
+            this.physics.add.collider(this.player, tableCollision);
+
+            // Add Amber in a bottom-right spot for this level
+            const amber = this.physics.add.staticSprite(2100, 2300, 'amber').setDepth(2).setScale(3);
+            this.physics.add.collider(this.player, amber);
+            amber.anims.play('amber-idle');
+
+            // Add Nonna NPC - moved even more southern
+            const nonna = this.physics.add.staticSprite(1600, 2300, 'nonna').setDepth(2).setScale(3);
+            this.physics.add.collider(this.player, nonna);
             nonna.anims.play('nonna-idle');
+
+            // Add Boyfriend NPC - moved northern
+            const bf = this.physics.add.staticSprite(1850, 1000, 'boyfriend').setDepth(2).setScale(3);
+            this.physics.add.collider(this.player, bf);
+            bf.anims.play('boyfriend-idle');
+
+            // Add Sister NPC (Nonna's version) - moved northern and makes her move
+            const sisterNonnas = this.physics.add.sprite(1100, 1150, 'sister_nonnas').setDepth(2).setScale(3);
+            sisterNonnas.setImmovable(true);
+            this.physics.add.collider(this.player, sisterNonnas);
+            sisterNonnas.anims.play('sister_nonnas-idle');
+
+            // Sister interaction - follows her movement
+            const sisterInteractable = {
+                x: sisterNonnas.x, y: sisterNonnas.y, radius: 350,
+                getQuestion: () => ({
+                    prompt: "la nonna è troppo veloce a fare la sfoglia, dobbiamo essere più rapide!",
+                    onComplete: () => {
+                        this.closeHTMLDialog();
+                    }
+                })
+            };
+            this.interactables.push(sisterInteractable);
+            (sisterInteractable as any).sprite = sisterNonnas;
+
+            // Movement sequence: -400x, +500y, and back twice (2x faster)
+            const sStartX = 1100;
+            const sStartY = 1150;
+            this.tweens.chain({
+                targets: sisterNonnas,
+                loop: 1, // Repeat once = total 2 cycles
+                tweens: [
+                    {
+                        x: sStartX - 400,
+                        duration: 1000,
+                        ease: 'Linear',
+                        onStart: () => sisterNonnas.anims.play('sister_nonnas-walk-left', true)
+                    },
+                    {
+                        y: sStartY + 500,
+                        duration: 2000,
+                        ease: 'Linear',
+                        onStart: () => sisterNonnas.anims.play('sister_nonnas-walk-down', true)
+                    },
+                    {
+                        y: sStartY,
+                        duration: 2000,
+                        ease: 'Linear',
+                        onStart: () => sisterNonnas.anims.play('sister_nonnas-walk-up', true)
+                    },
+                    {
+                        x: sStartX,
+                        duration: 1000,
+                        ease: 'Linear',
+                        onStart: () => sisterNonnas.anims.play('sister_nonnas-walk-right', true)
+                    }
+                ],
+                onComplete: () => {
+                    sisterNonnas.anims.play('sister_nonnas-idle', true);
+                }
+            });
+
+            this.interactables.push({
+                x: 2100, y: 2300, radius: 350,
+                getQuestion: () => ({
+                    prompt: "Woof! *annusa un pezzetto di prosciutto* ...",
+                    onComplete: () => {
+                        this.closeHTMLDialog();
+                    }
+                })
+            });
+
+            // Boyfriend interaction (2 stages)
+            let bfStage = 0;
+            this.interactables.push({
+                x: 1850, y: 1000, radius: 350,
+                getQuestion: () => ({
+                    prompt: bfStage === 0 ? "mentre io ne faccio uno voi ne avete già preparati 4..." : "tutti soldatini come dice Lara...",
+                    onComplete: () => {
+                        this.closeHTMLDialog();
+                        if (bfStage === 0) bfStage = 1;
+                    }
+                })
+            });
+
+            // Nonna interaction (2 stages + level end)
+            let nonnaStage = 0;
+            this.interactables.push({
+                x: 1600, y: 2300, radius: 350,
+                getQuestion: () => ({
+                    prompt: nonnaStage === 0 ? "ma no maddalena devono essere tutti uguali i tortellini, questo qui è più corto dell'altro..." : "dammi il rullino, vedrai che saranno buonissimi...",
+                    onComplete: () => {
+                        this.closeHTMLDialog();
+                        if (nonnaStage === 0) {
+                            nonnaStage = 1;
+                        } else {
+                            this.advanceLevel();
+                        }
+                    }
+                })
+            });
         }
 
-        // ── Level 7: Snow Trekking
+
+        // ── Level 7: At Your Apartment
         if (this.currentLevelIndex === 7) {
-            this.add.image(160, 600, 'snow_tracks').setDepth(0).setScale(0.1);
-            this.add.image(160, 500, 'snow_tracks').setDepth(0).setScale(0.1);
-            this.add.image(180, 100, 'socks').setDepth(1).setScale(0.05);
+            this.add.image(0, 0, 'apartment').setOrigin(0, 0).setDepth(0);
 
-            // Add Sister and Boyfriend NPCs
-            const sister = this.add.sprite(140, 80, 'sister').setDepth(2).setScale(0.125);
-            sister.anims.play('sister-idle');
-            const boyfriend = this.add.sprite(180, 80, 'boyfriend').setDepth(2).setScale(0.125);
+            // The apartment is huge, so scale the player up heavily to match the furniture size
+            this.player.setScale(3);
+            // Tighten the collision body so the huge bounding box doesn't push the player far away 
+            (this.player.body as Phaser.Physics.Arcade.Body).setSize(40, 80);
+
+            // Add Amber, also giant scale to match
+            const amber = this.physics.add.staticSprite(600, 1900, 'amber').setDepth(2).setScale(3);
+            // Do NOT call refreshBody() so her collision box stays small and tight at the center
+            this.physics.add.collider(this.player, amber);
+            amber.anims.play('amber-idle');
+
+            this.interactables.push({
+                x: 600, y: 1900, radius: 350,
+                getQuestion: () => ({
+                    prompt: "Woof! *si mette l'intera gamba in gola* ...",
+                    onComplete: () => {
+                        this.closeHTMLDialog();
+                    }
+                })
+            });
+
+            // Add Boyfriend to trigger the end scene on the other side of Amber (Right side, x: 900)
+            const boyfriend = this.physics.add.staticSprite(1900, 2300, 'boyfriend').setDepth(2).setScale(3);
+            // Do NOT call refreshBody() so his collision box stays small
+            this.physics.add.collider(this.player, boyfriend);
             boyfriend.anims.play('boyfriend-idle');
-        }
 
-        // ── Level 8: Parmesan Factory
-        if (this.currentLevelIndex === 8) {
-            this.add.image(200, 150, 'parmigiano_1').setDepth(1).setScale(0.08);
-            this.add.image(350, 200, 'parmigiano_2').setDepth(1).setScale(0.08);
-            this.add.image(500, 180, 'parmigiano_3').setDepth(1).setScale(0.08);
-            this.add.image(400, 100, 'factory_shelf').setDepth(0).setScale(0.15);
-        }
+            let bfStage = 0;
+            this.interactables.push({
+                x: 1900, y: 2200, radius: 350,
+                getQuestion: () => {
+                    if (bfStage === 0) {
+                        return {
+                            prompt: "Giriamo e rigiriamo ma moltissimi ricordi li stiamo costruendo a casa, anche non facendo nulla\n\n(Premi E per continuare)",
+                            onComplete: () => {
+                                this.closeHTMLDialog();
+                                bfStage = 1;
+                            }
+                        };
+                    } else if (bfStage === 1) {
+                        return {
+                            prompt: "però aspetta, c'è un quadro che non c'entra nulla qui e che Gemini ha sballato nella creazione di questo mondo. Quale?\n\n(Premi E per continuare)",
+                            onComplete: () => {
+                                this.closeHTMLDialog();
+                                bfStage = 2;
+                            }
+                        }; 1
+                    } else if (bfStage === 2) {
+                        return {
+                            prompt: "Quale è questo quadro?",
+                            options: ["the batman", "Vi/ Va", "Le due mani bianche e nere", "quando a letto l'amore c'è"],
+                            correctIndex: 0,
+                            onCorrect: () => {
+                                this.showHTMLDialog({
+                                    prompt: "bella la bacheca...\n\n(Premi E per continuare)",
+                                    onComplete: () => {
+                                        this.closeHTMLDialog();
+                                        bfStage = 3;
+                                    }
+                                });
+                            }
+                        };
+                    } else {
+                        return {
+                            prompt: "Vai a vedere la bacheca!",
+                            onComplete: () => { this.closeHTMLDialog(); }
+                        };
+                    }
+                }
+            });
 
-        // ── Level 9: At Your Apartment
-        if (this.currentLevelIndex === 9) {
-            this.add.image(350, 200, 'sofa').setDepth(1).setScale(0.12);
-            this.add.image(250, 120, 'macbook').setDepth(1).setScale(0.03);
-            this.add.image(150, 180, 'cooking_pot').setDepth(1).setScale(0.05);
+            // The right-side middle interaction
+            this.interactables.push({
+                x: 2700, y: 1000, radius: 250, // wide radius to catch player walking near the right edge
+                getQuestion: () => {
+                    if (bfStage < 3) {
+                        return {
+                            prompt: "Sembra esserci una carta, ma prima dovrei parlare con lui...",
+                            onComplete: () => { this.closeHTMLDialog(); }
+                        };
+                    } else {
+                        return {
+                            prompt: "c'è una carta sulla bacheca...che carta è?",
+                            options: ["Re di quadri", "regina di fiori", "re di cuori", "asso di bastoni"],
+                            correctIndex: 1,
+                            onCorrect: () => {
+                                this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
+                                setTimeout(() => {
+                                    this.closeHTMLDialog();
+                                    this.advanceLevel();
+                                }, 1500);
+                            }
+                        };
+                    }
+                }
+            });
         }
 
         const kb = this.input.keyboard!;
@@ -1277,10 +1468,9 @@ class GameScene extends Phaser.Scene {
                     options: levelConfig.options,
                     correctIndex: levelConfig.correctIndex,
                     onCorrect: () => {
-                        this.showHTMLDialog({ prompt: "✓ Correct! Memory unlocked." });
+                        this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
                         setTimeout(() => {
                             this.closeHTMLDialog();
-                            this.advanceLevel();
                         }, 1500); // Wait 1.5 seconds, then transition to next level
                     }
                 })
@@ -1294,6 +1484,10 @@ class GameScene extends Phaser.Scene {
             backgroundColor: '#f8fafc',
             padding: { x: 3, y: 1 }
         }).setDepth(10).setOrigin(0.5, 1.5).setVisible(false);
+
+        if (this.currentLevelIndex === 7 || this.currentLevelIndex === 6) {
+            this.interactPrompt.setScale(5);
+        }
 
         kb.on('keydown-E', () => {
             // Don't handle E key if text input is active (prevent closing dialog during typing)
@@ -1310,6 +1504,15 @@ class GameScene extends Phaser.Scene {
 
         anyWindow.handleDialogAnswer = (index: number) => this.handleAnswer(index);
         anyWindow.handleTextInput = (value: string) => this.handleTextInput(value);
+
+        if (this.currentLevelIndex === 0) {
+            this.showHTMLDialog({
+                prompt: "Come giocare:\n- WASD per muoversi\n- E per interagire\n- Mouse per le risposte",
+                onComplete: () => {
+                    this.closeHTMLDialog();
+                }
+            });
+        }
     }
 
     advanceLevel() {
@@ -1477,7 +1680,7 @@ class GameScene extends Phaser.Scene {
                 // Slow down the van before it hits the stuck point (at 300)
                 speedMult = 0.5;
             }
-            
+
             if (this.keys.left.isDown) { vanBody.setVelocityX(-this.SPEED * speedMult); this.vanSprite.setFlipX(true); }
             if (this.keys.right.isDown) { vanBody.setVelocityX(+this.SPEED * speedMult); this.vanSprite.setFlipX(false); }
 
@@ -1492,7 +1695,7 @@ class GameScene extends Phaser.Scene {
                     y: this.vanSprite.y,
                     radius: 80,
                     getQuestion: () => ({
-                        prompt: "Press E to dismount from the van",
+                        prompt: "Premi E per scendere dal van",
                         onComplete: () => {
                             this.hasDismountedVan = true;
                             this.isDrivingVan = false;
@@ -1513,20 +1716,71 @@ class GameScene extends Phaser.Scene {
                                     y: 200,
                                     radius: 40,
                                     getQuestion: () => ({
-                                        prompt: "Bella Papagayolo sai chi ha costruito questa spiaggia?",
+                                        prompt: "Bella Papagayo. Lo sai chi ha costruito questa spiaggia?",
                                         options: ["Manrique", "César", "un famoso artista e architetto delle canarie"],
                                         correctIndex: 0,
                                         onCorrect: () => {
-                                            this.showHTMLDialog({
-                                                prompt: "mi devi dire qualcosa?",
-                                                options: ["Bisogna svuotare le acque grigie", "Il cous cous si è scotto", "Tele club stasera?", "Ti Amo"],
-                                                correctIndex: 3,
-                                                onCorrect: () => {
-                                                    this.showHTMLDialog({ prompt: "✓ Correct! Memory unlocked." });
-                                                    setTimeout(() => {
-                                                        this.closeHTMLDialog();
-                                                        this.advanceLevel();
-                                                    }, 1500);
+                                            this.closeHTMLDialog();
+                                            this.interactables = []; // Clear current interaction
+
+                                            // Make boyfriend walk left towards the van
+                                            boyfriend.anims.play('boyfriend-walk-left', true);
+
+                                            this.tweens.add({
+                                                targets: boyfriend,
+                                                x: this.vanSprite.x + 80,
+                                                y: this.vanSprite.y + 30,
+                                                duration: 2000,
+                                                onComplete: () => {
+                                                    boyfriend.anims.play('boyfriend-idle', true);
+
+                                                    // Night tint overlay for lighting transition
+                                                    const nightGraphics = this.add.graphics();
+                                                    nightGraphics.fillStyle(0x0a1128, 0);
+                                                    nightGraphics.fillRect(-5000, -5000, 10000, 10000);
+                                                    nightGraphics.setDepth(100);
+                                                    nightGraphics.setScrollFactor(0);
+
+                                                    let nightAlpha = 0;
+                                                    const updateNightTint = () => {
+                                                        nightGraphics.clear();
+                                                        nightGraphics.fillStyle(0x0a1128, nightAlpha);
+                                                        nightGraphics.fillRect(-5000, -5000, 10000, 10000);
+                                                    };
+
+                                                    // Transition to night
+                                                    this.tweens.addCounter({
+                                                        from: 0,
+                                                        to: 0.65,
+                                                        duration: 2500,
+                                                        onUpdate: (tween) => {
+                                                            const val = tween.getValue();
+                                                            if (val !== null) {
+                                                                nightAlpha = val;
+                                                                updateNightTint();
+                                                            }
+                                                        },
+                                                        onComplete: () => {
+                                                            // Re-enable interaction with the second question
+                                                            this.interactables = [{
+                                                                x: boyfriend.x,
+                                                                y: boyfriend.y,
+                                                                radius: 50,
+                                                                getQuestion: () => ({
+                                                                    prompt: "mi devi dire qualcosa?",
+                                                                    options: ["Bisogna svuotare le acque grigie", "Il cous cous si è scotto", "Tele club stasera?", "Ti Amo"],
+                                                                    correctIndex: 3,
+                                                                    onCorrect: () => {
+                                                                        this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
+                                                                        setTimeout(() => {
+                                                                            this.closeHTMLDialog();
+                                                                            this.advanceLevel();
+                                                                        }, 1500);
+                                                                    }
+                                                                })
+                                                            }];
+                                                        }
+                                                    });
                                                 }
                                             });
                                         }
@@ -1536,7 +1790,7 @@ class GameScene extends Phaser.Scene {
                                 // Level 5 Dis-mount logic
                                 this.vanSprite.setTexture('van_sand');
                                 this.vanSprite.setScale(0.1425); // NO ANGLE (no tilt), 5% smaller than before
-                                
+
                                 // Adjust visual offset because van_sand is a slightly different size
                                 this.vanSprite.setPosition(this.vanSprite.x + 30, this.vanSprite.y + 15);
 
@@ -1590,7 +1844,7 @@ class GameScene extends Phaser.Scene {
                                                                                             this.showHTMLDialog({
                                                                                                 prompt: "ah husto, ecco una tabla de madera",
                                                                                                 onComplete: () => {
-                                                                                                    this.showHTMLDialog({ prompt: "✓ Memory unlocked." });
+                                                                                                    this.showHTMLDialog({ prompt: "✓ Suuuuuuu" });
                                                                                                     setTimeout(() => {
                                                                                                         this.closeHTMLDialog();
                                                                                                         this.advanceLevel();
@@ -1653,10 +1907,11 @@ class GameScene extends Phaser.Scene {
             body.setVelocity(0);
 
             let moving = false;
-            if (this.keys.left.isDown) { body.setVelocityX(-this.SPEED); this.lastDir = 'left'; moving = true; }
-            if (this.keys.right.isDown) { body.setVelocityX(+this.SPEED); this.lastDir = 'right'; moving = true; }
-            if (this.keys.up.isDown) { body.setVelocityY(-this.SPEED); this.lastDir = 'up'; moving = true; }
-            if (this.keys.down.isDown) { body.setVelocityY(+this.SPEED); this.lastDir = 'down'; moving = true; }
+            const currentSpeed = (this.currentLevelIndex === 7 || this.currentLevelIndex === 6) ? this.SPEED * 6 : this.SPEED;
+            if (this.keys.left.isDown) { body.setVelocityX(-currentSpeed); this.lastDir = 'left'; moving = true; }
+            if (this.keys.right.isDown) { body.setVelocityX(+currentSpeed); this.lastDir = 'right'; moving = true; }
+            if (this.keys.up.isDown) { body.setVelocityY(-currentSpeed); this.lastDir = 'up'; moving = true; }
+            if (this.keys.down.isDown) { body.setVelocityY(+currentSpeed); this.lastDir = 'down'; moving = true; }
 
             if (moving) {
                 this.player.anims.play(`walk-${this.lastDir}`, true);
@@ -1667,10 +1922,13 @@ class GameScene extends Phaser.Scene {
 
         for (const obj of this.interactables) {
             const targetSprite = (this.isDrivingVan && !this.hasDismountedVan) ? this.vanSprite : this.player;
-            const dist = Phaser.Math.Distance.Between(targetSprite.x, targetSprite.y, obj.x, obj.y);
+            // Support interactables following a moving sprite
+            const curX = (obj as any).sprite ? (obj as any).sprite.x : obj.x;
+            const curY = (obj as any).sprite ? (obj as any).sprite.y : obj.y;
+            const dist = Phaser.Math.Distance.Between(targetSprite.x, targetSprite.y, curX, curY);
             if (dist <= obj.radius) {
                 this.activeInteractable = obj;
-                this.interactPrompt.setPosition(obj.x, obj.y - 12);
+                this.interactPrompt.setPosition(curX, curY - 12);
                 this.interactPrompt.setVisible(true);
                 break;
             }
